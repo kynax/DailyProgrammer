@@ -57,13 +57,18 @@ class Forest:
 			nbBears -= 1
 	
 	def isEmpty(self, x, y):
-		return self.things[x][y] == None or self.things[x][y] == ' '
+		return self.things[x%self.size][y%self.size] == None or self.things[x%self.size][y%self.size] == ' '
 		
 	def emptySquare(self, x, y):
-		self.things[x][y] = ' '
+		self.things[x%self.size][y%self.size] = ' '
 		
 	def thing(self, x, y):
-		return str(self.things[x][y])
+		return str(self.things[x%self.size][y%self.size])
+		
+	def setThing(self, x, y, t):
+		self.things[x%self.size][y%self.size] = t
+		if isinstance(t, Tree):
+			self.newTrees += 1
 		
 	def tick(self):
 		# New month, things activate
@@ -88,7 +93,8 @@ class Forest:
 			
 	def summary(self):
 		# Print monthly feedback
-		print("[Month {}]".format(self.age))
+		if self.newTrees != 0:
+			print("[Month {}] New trees : {}".format(self.age, self.newTrees))
 		
 		# Print end of year summary
 		if self.age % 12 == 0:
@@ -132,7 +138,6 @@ class Thing:
 		pass
 	
 	def tick(self):
-		print("Thing ticking...")
 		self.move()
 		self.action(self, self.x, self.y)
 		
@@ -179,8 +184,16 @@ class Tree(Thing):
 		Thing.__init__(self, x, y)
 	
 	def action(self, thing, x, y):
+		self.age += 1
+		if self.age > 12:
+			self.type = 1
+		if self.age > 120:
+			self.type = 2
+
+		if self.type == 0:
+			return 
+			
 		# Spawn a tree!
-		print("Spawn a tree near {},{}?".format(self.x, self.y))
 		if random() < self.type * 0.1:
 			
 			# Yup, find an empty spot
@@ -190,18 +203,20 @@ class Tree(Thing):
 					if Forest(0).isEmpty(mx,my):
 						spots.append([mx, my])
 			if len(spots) < 1:
-				print("No more room for new trees around {},{}".format(x,y))
 				return
 			
 			newspot = choice(spots)
-			print("Spawning sappling at {},{}".format(newspot[0], newspot[1]))
+			t = Tree(newspot[0], newspot[1])
+			Forest(0).setThing(newspot[0], newspot[1], t)
 	
 	def __str__(self):
 		return str(self.type)
 		
 forest = Forest(20)
 forest.print()
-print()
-print()
-forest.tick()
-forest.print()
+
+for i in range(125):
+	print()
+	print()
+	forest.tick()
+	forest.print()
