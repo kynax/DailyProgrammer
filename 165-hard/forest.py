@@ -31,7 +31,9 @@ class Forest:
 			
 		self.initialFill()
 		self.filled = True
+		self.clearConsole()
 		self.summary()
+		
 		
 	def initialFill(self):
 		print("Filling a new forest.")
@@ -209,8 +211,9 @@ class Forest:
 			
 			
 	def print(self):
+		lines = ""
 		# Print the top line of the grid
-		print("Month {}".format(self.age))
+		lines += "Month {}\n".format(self.age)
 		gap = len(str(10))-1
 		line = ""
 		for i in range(gap):
@@ -218,11 +221,11 @@ class Forest:
 		line += '|'
 		for i in range(self.size):
 			line += str(int(i % 10))
-		print(line)
+		lines += line+"\n"
 		line = ""
 		for i in range(self.size + gap + 1):
 			line += '-'
-		print(line)
+		lines += line+"\n"
 		
 		for x in range(self.size):
 			line = Style.RESET_ALL + str(int(x % 10)) + '|'
@@ -240,16 +243,28 @@ class Forest:
 						line += Back.CYAN
 						
 				if isinstance(t, Lumberjack):
+					if t.age == 0:
+						line += Style.BRIGHT
 					line += Fore.BLUE + str(t)
+					line += Style.NORMAL
 				elif isinstance(t, Bear):
+					if t.age == 0:
+						line += Style.BRIGHT
 					line += Fore.RED + str(t)
+					line += Style.NORMAL
 				else:
 					line += ' '
 				
 				line += Style.RESET_ALL
 				
-			print(line)
+			lines += line+"\n"
+		pos = lambda y, x: '\x1b[%d;%dH' % (y, x)
+		print(pos(1,1))
+		print(lines)
 				
+	def clearConsole(self):
+		for i in range(80):
+			print()
 
 class Thing:
 	"""Something in the forest. What is it?"""
@@ -259,6 +274,7 @@ class Thing:
 		self.x = x
 		self.y = y
 		self.actions = 0
+		self.age = 0
 		
 	def move(self):
 		moves = self.speed
@@ -298,6 +314,7 @@ class Thing:
 		pass
 	
 	def tick(self):
+		self.age += 1
 		# Try to do something right here, if not, start moving around
 		if not self.action(self.x, self.y):
 			self.move()
@@ -358,7 +375,6 @@ class Tree(Thing):
 	speed = 0 # Obviously!
 	
 	def __init__(self, x, y):
-		self.age = 0 # Newly born!
 		self.type = 0 # Sappling
 		Thing.__init__(self, x, y)
 	
@@ -395,9 +411,5 @@ class Tree(Thing):
 forest = Forest(20)
 forest.print()
 
-for i in range(12):
-	print()
-	print()
+for i in range(120):
 	forest.tick()
-	#forest.print()
-forest.print()
